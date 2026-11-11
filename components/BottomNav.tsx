@@ -1,0 +1,10 @@
+import React from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Clock, Home, Mail, Settings } from 'lucide-react-native';
+
+export type DriverTab = 'home' | 'inbox' | 'trips' | 'settings';
+export default function BottomNav({ activeTab, onChange, onInboxPress, unreadCount = 0 }: { activeTab: DriverTab; onChange: (tab: DriverTab) => void; onInboxPress: () => void; unreadCount?: number }) {
+  const items = [{ key: 'home' as const, label: 'Home', Icon: Home }, { key: 'inbox' as const, label: 'Inbox', Icon: Mail }, { key: 'trips' as const, label: 'Trips', Icon: Clock }, { key: 'settings' as const, label: 'Settings', Icon: Settings }];
+  return <View style={styles.nav}>{items.map(({ key, label, Icon }) => <TouchableOpacity key={key} style={styles.item} onPress={key === 'inbox' ? onInboxPress : () => onChange(key)} accessibilityRole="button" accessibilityState={{ selected: activeTab === key }}><View style={styles.icon}><Icon color={activeTab === key ? '#4285F4' : '#999'} size={26} />{key === 'inbox' && unreadCount > 0 ? <View style={styles.badge}><Text style={styles.badgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text></View> : null}</View><Text style={[styles.label, activeTab === key && styles.active]}>{label}</Text></TouchableOpacity>)}</View>;
+}
+const styles = StyleSheet.create({ nav: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 85, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#E8E8E8', paddingBottom: Platform.OS === 'ios' ? 20 : 10, paddingTop: 8, zIndex: 15, elevation: 25 }, item: { alignItems: 'center', justifyContent: 'center' }, icon: { position: 'relative' }, label: { fontSize: 11, color: '#999', marginTop: 6 }, active: { color: '#4285F4', fontWeight: '600' }, badge: { position: 'absolute', top: -4, right: -8, backgroundColor: '#FF3B30', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4, borderWidth: 2, borderColor: '#fff' }, badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' } });
