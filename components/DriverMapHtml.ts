@@ -134,21 +134,7 @@ export function getMapHtml(initialLat: number, initialLng: number): string {
 
     var map = new maplibregl.Map({
       container: 'map',
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: [
-              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-            tileSize: 256,
-            attribution: '© OpenStreetMap contributors'
-          }
-        },
-        layers: [{ id: 'osm-layer', type: 'raster', source: 'osm' }]
-      },
+      style: 'https://tiles.openfreemap.org/styles/liberty',
       center: [${initialLng}, ${initialLat}],
       zoom: 14,
       attributionControl: false

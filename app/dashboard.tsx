@@ -331,7 +331,7 @@ export default function Dashboard() {
       if (!onlineRef.current || !locationSubscriptionRef.current) return;
       const fix = getLocationSnapshot();
       const now = Date.now();
-      if (!fix || now < fix.ts || now - fix.ts > 60_000) return;
+      if (!fix || now < fix.ts || now - fix.ts > 300_000) return;
       const geoObject = createGeoFireObject(fix.lat, fix.lng);
       lastLocationWriteRef.current = now;
       void set(ref(database, `driver_locations/${uid}`), {
@@ -597,7 +597,7 @@ export default function Dashboard() {
 
       const subscription = await watchLocation(async (coords) => {
         const { latitude, longitude, heading, speed, accuracy } = coords;
-        if (!Number.isFinite(accuracy) || accuracy > 50) return;
+        if (!Number.isFinite(accuracy) || accuracy > 300) return;
         const previous = lastAcceptedPositionRef.current;
         const distance = previous
           ? distanceMeters(previous.latitude, previous.longitude, latitude, longitude)
@@ -757,7 +757,18 @@ export default function Dashboard() {
     const photo = driverData.profile?.profilePicture || '';
     const rating = driverData.rating || 5.0;
 
-    let coords = await getLocation();
+    // Mark the driver online FIRST (fast), so a slow GPS can never block it.
+    await set(ref(database, `drivers_online/${uid}`), {
+      isOnline: true,
+      isBusy: false,
+      lastUpdated: Date.now(),
+      sessionId: sessionIdRef.current,
+    });
+
+    let coords: any = await Promise.race([
+      getLocation(),
+      new Promise((resolve) => setTimeout(() => resolve(null), 6000)),
+    ]);
 
     // Fallback: a fresh GPS fix can be slow or time out. On native, fall back to
     // the last-known position so the vehicle marker appears immediately.
@@ -785,6 +796,7 @@ export default function Dashboard() {
         l: geoObject.l,
         g: geoObject.g,
         t: Date.now(),
+        sessionId: sessionIdRef.current,
       });
 
       console.log('[v0] Driver went online, location set to driver_locations:', { lat: latitude, lng: longitude, g: geoObject.g });
